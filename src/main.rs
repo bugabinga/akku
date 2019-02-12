@@ -21,6 +21,13 @@ enum CapacityLevel {
 }
 
 fn main() -> Result<()> {
+    println!("{}, today()?);
+    println!("{}", battery()?);
+    println!("{}", brightness()?);
+    Ok(())
+}
+
+fn battery() -> Result<String> {
     let bat0: &Path = Path::new("/sys/class/power_supply/BAT0/");
 
     let status = fs::read_to_string(bat0.join("status"))?;
@@ -57,13 +64,32 @@ fn main() -> Result<()> {
         CapacityLevel::UNKNOWN => "¿",
     };
 
-    let status_icon = match status {
+    let status = match status {
         Status::CHARGING => "↑↑",
         Status::DISCHARGING => "↓↓",
         Status::FULL => "ø",
         Status::UNKNOWN => "?",
     };
 
-    println!("{}{}{}%", capacity_level, status_icon, capacity);
-    Ok(())
+    Ok(format!("{}{}{}%", capacity_level, status, capacity))
 }
+
+fn brightness() -> Result<String> {
+    let intel_brightness = Path::new("/sys/class/intel_brightness/");
+
+    let brightness = fs::read_to_string(intel_brightness.join("brightness"))?;
+    let brightness = brightness.trim().parse::<u16>().unwrap();
+
+    let max_brightness = fs::read_to_string(intel_brightness.join("max_brightness"))?;
+    let max_brightness = max_brightness.trim().parse::<u16>().unwrap();
+
+    Ok(format!("{}%", brightness / max_brightness * 100))
+}
+
+fn today() -> Result<String> {
+    use chrono::prelude::*;
+    let local = Local::now();
+
+    Ok(format!("{}.{} {}:{}", local.day(), local.month(), local.hour(), local.minute()))
+}
+

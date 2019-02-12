@@ -5,3 +5,4 @@ authors = ["Oliver Jan Krylow <oliver@bugabinga.net>"]
 edition = "2018"
 
 [dependencies]
+chrono = "*"
