@@ -21,9 +21,7 @@ enum CapacityLevel {
 }
 
 fn main() -> Result<()> {
-    println!("{}, today()?);
-    println!("{}", battery()?);
-    println!("{}", brightness()?);
+    println!("{} | {} | {}", battery()?, brightness()?, today()?);
     Ok(())
 }
 
@@ -52,16 +50,14 @@ fn battery() -> Result<String> {
             bat0, really_unknown
         ),
     };
-    let capacity = fs::read_to_string(bat0.join("capacity"))?;
-    let capacity = capacity.trim();
 
     let capacity_level = match capacity_level {
-        CapacityLevel::FULL => "±",
-        CapacityLevel::NORMAL => "¤",
-        CapacityLevel::HIGH => "¯",
-        CapacityLevel::LOW => "·",
-        CapacityLevel::CRITICAL => "¡",
-        CapacityLevel::UNKNOWN => "¿",
+        CapacityLevel::FULL => '±',
+        CapacityLevel::NORMAL => '¤',
+        CapacityLevel::HIGH => '¯',
+        CapacityLevel::LOW => '·',
+        CapacityLevel::CRITICAL => '¡',
+        CapacityLevel::UNKNOWN => '¿',
     };
 
     let status = match status {
@@ -71,25 +67,36 @@ fn battery() -> Result<String> {
         Status::UNKNOWN => "?",
     };
 
+    let capacity = fs::read_to_string(bat0.join("capacity"))?;
+    let capacity = capacity.trim();
+
     Ok(format!("{}{}{}%", capacity_level, status, capacity))
 }
 
 fn brightness() -> Result<String> {
-    let intel_brightness = Path::new("/sys/class/intel_brightness/");
+    let intel_backlight = Path::new("/sys/class/backlight/intel_backlight/");
 
-    let brightness = fs::read_to_string(intel_brightness.join("brightness"))?;
+    let brightness = fs::read_to_string(intel_backlight.join("brightness"))?;
     let brightness = brightness.trim().parse::<u16>().unwrap();
 
-    let max_brightness = fs::read_to_string(intel_brightness.join("max_brightness"))?;
+    let max_brightness = fs::read_to_string(intel_backlight.join("max_brightness"))?;
     let max_brightness = max_brightness.trim().parse::<u16>().unwrap();
 
-    Ok(format!("{}%", brightness / max_brightness * 100))
+    Ok(format!(
+        "»{}%«",
+        brightness as f32 / max_brightness as f32 * 100.0
+    ))
 }
 
 fn today() -> Result<String> {
     use chrono::prelude::*;
     let local = Local::now();
 
-    Ok(format!("{}.{} {}:{}", local.day(), local.month(), local.hour(), local.minute()))
+    Ok(format!(
+        "{}.{} {}:{}",
+        local.day(),
+        local.month(),
+        local.hour(),
+        local.minute()
+    ))
 }
-
