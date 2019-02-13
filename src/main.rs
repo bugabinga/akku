@@ -70,7 +70,7 @@ fn battery() -> Result<String> {
     let capacity = fs::read_to_string(bat0.join("capacity"))?;
     let capacity = capacity.trim();
 
-    Ok(format!("{}{}{}%", capacity_level, status, capacity))
+    Ok(format!("{}{}%{}", status, capacity, capacity_level))
 }
 
 fn brightness() -> Result<String> {
